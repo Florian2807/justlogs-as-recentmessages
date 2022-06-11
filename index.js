@@ -22,23 +22,27 @@ app.get('/api/v2/recent-messages/:channel/', (req, res) => {
                 "messages": []
             })
         } else {
-            got(`https://recent-messages.florian2807.me/api/v2/recent-messages/${channel}`).json().then(response => {
-                console.log(channel)
-                let i = 0
-                let messageLimit = response.messages.length < parseInt(limit) ? response.messages.length : parseInt(limit)
+            try {
+                got(`https://rmjl.florian2807.me/api/v2/recent-messages/${channel}`).json().then(response => {
+                    console.log(channel)
+                    let i = 0
+                    let messageLimit = response.messages.length < parseInt(limit) ? response.messages.length : parseInt(limit)
 
-                response. messages = response.messages.slice(0, messageLimit)
-                const recentMessages = response.messages.forEach(message => {
+                    response.messages = response.messages.slice(0, messageLimit)
+                    const recentMessages = response.messages.forEach(message => {
 
-                    message = parseIrcMessage(message)
-                    i++
+                        message = parseIrcMessage(message)
+                        i++
+                    })
+                    res.send({
+                        "error": null,
+                        "error_code": null,
+                        "messages": response.messages
+                    })
                 })
-                res.send({
-                    "error": null,
-                    "error_code": null,
-                    "messages": response.messages
-                })
-            })
+            } catch (e) {
+                console.log(e)
+            }
         }
     } else { // if the last downtime was more than 24 hours ago, we use the recentMessages API to get the messages
         got(`https://recent-messages.robotty.de/api/v2/recent-messages/${channel}?limit=${limit}`).json().then(response => {
