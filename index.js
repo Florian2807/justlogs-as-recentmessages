@@ -68,7 +68,7 @@ function parseIrcMessage(ircMsg) {
 setInterval(async () => {
     await checkIsDown()
     await getAvaiableChannels()
-}, 6000)
+}, 60000)
 
 async function checkIsDown() {
     const {isDown} = await got("https://api-prod.downfor.cloud/httpcheck/https://recent-messages.robotty.de/api/v2/recent-messages/florian_2807").json()
