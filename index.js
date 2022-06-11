@@ -49,8 +49,8 @@ app.get('/api/v2/recent-messages/:channel/', (req, res) => {
 
 const server = http.createServer(app)
 
-server.listen(5000, () => {
-    console.log('listening on port 5000')
+server.listen(1234, () => {
+    console.log('listening on port 1234')
 })
 
 
