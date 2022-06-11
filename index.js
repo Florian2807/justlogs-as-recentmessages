@@ -23,12 +23,11 @@ app.get('/api/v2/recent-messages/:channel/', (req, res) => {
             })
         } else {
             got(`https://recent-messages.florian2807.me/api/v2/recent-messages/${channel}`).json().then(response => {
+                console.log(channel)
                 let i = 0
-                let messageLimit = response.messages.length < limit ? response.messages.length : limit
+                let messageLimit = response.messages.length < parseInt(limit) ? response.messages.length : parseInt(limit)
 
-                response.messages //.slice(0, messageLimit)
-                console.log(response.messages.length)
-                console.log(messageLimit)
+                response. messages = response.messages.slice(0, messageLimit)
                 const recentMessages = response.messages.forEach(message => {
 
                     message = parseIrcMessage(message)
@@ -56,18 +55,14 @@ server.listen(5000, () => {
 
 
 function parseIrcMessage(ircMsg) {
-    try {
         let regexTmiTS = /tmi-sent-ts=(\d+)/
         let regexInsertRMTags = /(.+flags=;)(id=.+mod=\d;)(room-id=.+)/
 
-        let tmiTS = regexTmiTS.exec(ircMsg)[1]
+        let tmiTS = regexTmiTS.exec(ircMsg)?.[1]
 
         let rmMsg = ircMsg.replace(regexInsertRMTags, `$1historical=1;$2rm-received-ts=${tmiTS};$3`)
 
         return rmMsg
-    } catch (e) {
-        console.log(e)
-    }
 }
 
 setInterval(async () => {
