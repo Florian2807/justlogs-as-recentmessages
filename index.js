@@ -73,7 +73,6 @@ setInterval(async () => {
 async function checkIsDown() {
     const {isDown} = await got("https://api-prod.downfor.cloud/httpcheck/https://recent-messages.robotty.de/api/v2/recent-messages/florian_2807").json()
     if (isDown) {
-        console.log('xd')
         lastDowntime = new Date().getTime()
     }
 
