@@ -28,7 +28,9 @@ app.get('/api/v2/recent-messages/:channel/', (request, response) => {
 
     const requestedChannel = request.params.channel
     const requestedLimit = parseInt(request.query.limit as string) || 800
-
+    if (requestedChannel !== "RecentMessagesMyInstance") {
+        console.log("request for channel " + requestedChannel)
+    }
     const isLogged = loggedChannels.includes(requestedChannel)
     if (!isLogged || hoursSinceLastDowntime > 24) {
         const recentMessages = `${config.recentMsgInstance}/api/v2/recent-messages/${requestedChannel}?limit=${requestedLimit}`
@@ -65,9 +67,8 @@ function convertIRCMessage(ircMsg : string) {
 
     let tmiTS = regexTmiTS.exec(ircMsg)?.[1]
 
-    let rmMsg = ircMsg.replace(regexInsertRMTags, `$1historical=1;$2rm-received-ts=${tmiTS};$3`)
 
-    return rmMsg
+    return ircMsg.replace(regexInsertRMTags, `$1historical=1;$2rm-received-ts=${tmiTS};$3`)
 }
 
 function checkIsDown() {
