@@ -4,14 +4,16 @@ import express, { Express } from 'express';
 
 const app : Express = express()
 
+const config = require('./config.json')
+
 let lastRMDowntime : Date = new Date(0)
 let loggedChannels : string[] = []
 
 checkIsDown()
-getAvaiableChannels()
+getAvailableChannels()
 setInterval(() => {
     checkIsDown()
-    getAvaiableChannels()
+    getAvailableChannels()
 }, 60000)
 
 const server = http.createServer(app)
@@ -29,8 +31,7 @@ app.get('/api/v2/recent-messages/:channel/', (request, response) => {
 
     const isLogged = loggedChannels.includes(requestedChannel)
     if (!isLogged || hoursSinceLastDowntime > 24) {
-        const recentMessages = `https://recent-messages.robotty.de/api/v2/recent-messages/${requestedChannel}?limit=${requestedLimit}`
-        console.log(recentMessages)
+        const recentMessages = `${config.recentMsgInstance}/api/v2/recent-messages/${requestedChannel}?limit=${requestedLimit}`
         got(recentMessages).then(result => {
             response.header('content-type', 'application/json')
             response.send(result.rawBody)
@@ -40,7 +41,7 @@ app.get('/api/v2/recent-messages/:channel/', (request, response) => {
         })
     }
     else {
-        got(`https://rmjl.florian2807.me/${requestedChannel}`).json<RecentMessages>().then(result => {
+        got(`${config.recentMsgJustLogsInstance}/${requestedChannel}`).json<RecentMessages>().then(result => {
             const messageLimit = Math.min(result.messages.length, requestedLimit)
             result.messages = result.messages.slice(0, messageLimit)
 
@@ -70,7 +71,7 @@ function convertIRCMessage(ircMsg : string) {
 }
 
 function checkIsDown() {
-    got('https://recent-messages.robotty.de/api/v2/recent-messages/forsen?limit=1').json<RecentMessages>().then(result => {
+    got(`${config.recentMsgInstance}/api/v2/recent-messages/forsen?limit=1`).json<RecentMessages>().then(result => {
         if (result.error !== null) {
             lastRMDowntime = new Date()
         }
@@ -79,8 +80,8 @@ function checkIsDown() {
         })
 }
 
-function getAvaiableChannels() {
-    got("https://logs.florian2807.me/channels").json<string[]>().then(channels => loggedChannels = channels)
+function getAvailableChannels() {
+    got(`${config.justlogsInstance}/channels`).json<string[]>().then(channels => loggedChannels = channels)
 }
 
 interface RecentMessages {
