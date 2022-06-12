@@ -23,7 +23,7 @@ app.get('/api/v2/recent-messages/:channel/', (req, res) => {
             })
         } else {
             try {
-                got(`https://rmjl.florian2807.me/api/v2/recent-messages/${channel}`).json().then(response => {
+                got(`https://rmjl.florian2807.me${channel}`).json().then(response => {
                     console.log(channel)
                     let i = 0
                     let messageLimit = response.messages.length < parseInt(limit) ? response.messages.length : parseInt(limit)
