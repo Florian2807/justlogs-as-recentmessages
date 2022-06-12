@@ -39,6 +39,7 @@ app.get('/api/v2/recent-messages/:channel/', (request, response) => {
             response.send(result.rawBody)
         }).catch(() => {
             lastRMDowntime = new Date()
+            console.log('recent-messages request failed')
             response.sendStatus(500)
         })
     }
