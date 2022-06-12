@@ -28,7 +28,7 @@ app.get('/api/v2/recent-messages/:channel/', (request, response) => {
 
     const requestedChannel = request.params.channel
     const requestedLimit = parseInt(request.query.limit as string) || 800
-    if (requestedChannel !== "RecentMessagesMyInstance") {
+    if (requestedChannel !== "statuspage") {
         console.log("request for channel " + requestedChannel)
     }
     const isLogged = loggedChannels.includes(requestedChannel)
