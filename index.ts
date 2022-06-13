@@ -20,8 +20,8 @@ setInterval(() => {
 
 const app: Express = express()
 const server = http.createServer(app)
-server.listen(1234, () => {
-    console.log('listening on port 1234')
+server.listen(config.port, () => {
+    console.log('listening on port ' + config.port)
 })
 
 
