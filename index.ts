@@ -7,9 +7,8 @@ const app: Express = express()
 
 const config = require('./config.json')
 
-const lastDowntime: string = fs.readFileSync('./last-down.json', 'utf8') || '1970-01-01T00:00:00.000Z'
-console.log(lastDowntime)
-let lastRMDowntime: Date = new Date(lastDowntime)
+const lastRecordedRMDowntime : string = fs.readFileSync('./last-down.json', 'utf8')
+let lastRMDowntime: Date = new Date(lastRecordedRMDowntime || 0)
 let loggedChannels: string[] = []
 console.log(lastRMDowntime)
 
