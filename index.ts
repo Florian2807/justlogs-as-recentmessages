@@ -22,6 +22,16 @@ server.listen(1234, () => {
     console.log('listening on port 1234')
 })
 
+
+app.get('/status/', (request, response) => {
+    const timeSinceLastDowntime = Date.now() - lastRMDowntime.getTime()
+    const hoursSinceLastDowntime = timeSinceLastDowntime / 1000 / 60 / 60
+    response.send({
+        "lastDowntime": lastRMDowntime.getTime() ? lastRMDowntime : null,
+        "last24Hours": hoursSinceLastDowntime < 24,
+    })
+})
+
 app.get('/api/v2/recent-messages/:channel/', (request, response) => {
     const timeSinceLastDowntime = Date.now() - lastRMDowntime.getTime()
     const hoursSinceLastDowntime = timeSinceLastDowntime / 1000 / 60 / 60
