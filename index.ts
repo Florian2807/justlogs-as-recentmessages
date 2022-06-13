@@ -9,8 +9,6 @@ const lastRecordedRMDowntime : string = fs.readFileSync('./last-down.json', 'utf
 let lastRMDowntime: Date = new Date(lastRecordedRMDowntime || 0)
 let loggedChannels: string[] = []
 
-console.log(lastRMDowntime)
-
 
 checkIsDown()
 getAvailableChannels()
