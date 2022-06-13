@@ -1,16 +1,21 @@
 import http from 'http'
 import got from 'got'
 import express, {Express} from 'express';
+import * as fs from "fs";
 
 const app: Express = express()
 
 const config = require('./config.json')
 
-let lastRMDowntime: Date = new Date(0)
+const lastDowntime: string = fs.readFileSync('./last-down.json', 'utf8') || '1970-01-01T00:00:00.000Z'
+console.log(lastDowntime)
+let lastRMDowntime: Date = new Date(lastDowntime)
 let loggedChannels: string[] = []
+console.log(lastRMDowntime)
 
 checkIsDown()
 getAvailableChannels()
+
 setInterval(() => {
     checkIsDown()
     getAvailableChannels()
@@ -43,34 +48,48 @@ app.get('/api/v2/recent-messages/:channel/', (request, response) => {
     }
     const isLogged = loggedChannels.includes(requestedChannel)
     if (!isLogged || hoursSinceLastDowntime > 24) {
-        const recentMessages = `${config.recentMsgInstance}/api/v2/recent-messages/${requestedChannel}?limit=${requestedLimit}`
-        got(recentMessages, {throwHttpErrors: false}).then(result => {
-            response.header('content-type', 'application/json')
-            response.send(result.rawBody)
-        }).catch(() => {
-            lastRMDowntime = new Date()
-            console.log('recent-messages request failed')
-            response.sendStatus(500)
-        })
+        requestRecentMSG(response, requestedChannel, requestedLimit)
     } else {
-        got(`${config.recentMsgJustLogsInstance}/${requestedChannel}`).json<RecentMessages>().then(result => {
-
-            const messageLimit = Math.min(result.messages.length, requestedLimit)
-            result.messages = result.messages.slice(0, messageLimit)
-
-            const recentMessages: string[] = []
-            result.messages.forEach(message => {
-                recentMessages.push(convertIRCMessage(message))
-            })
-
-            response.send({
-                "error": null,
-                "error_code": null,
-                "messages": recentMessages
-            })
-        }).catch(() => response.sendStatus(500))
+        requestJustLogs(response, requestedChannel, requestedLimit)
     }
 })
+
+function requestRecentMSG(response: any, requestedChannel: string, requestedLimit: number) {
+    const recentMessages = `${config.recentMsgInstance}/api/v2/recent-messages/${requestedChannel}?limit=${requestedLimit}`
+    got(recentMessages, {throwHttpErrors: false}).then(result => {
+        response.header('content-type', 'application/json')
+        if (response.error !== null) {
+            requestJustLogs(response, requestedChannel, requestedLimit)
+        } else {
+            response.send(result.rawBody)
+        }
+    }).catch(() => {
+        lastRMDowntime = new Date()
+        console.log('recent-messages request failed')
+        response.sendStatus(500)
+    })
+}
+
+
+function requestJustLogs(response: any, requestedChannel: string, requestedLimit: number) {
+    got(`${config.recentMsgJustLogsInstance}/${requestedChannel}`).json<RecentMessages>().then(result => {
+
+        const messageLimit = Math.min(result.messages.length, requestedLimit)
+        result.messages = result.messages.slice(0, messageLimit)
+
+        const recentMessages: string[] = []
+        result.messages.forEach(message => {
+            recentMessages.push(convertIRCMessage(message))
+        })
+
+        response.send({
+            "error": null,
+            "error_code": null,
+            "messages": recentMessages
+        })
+    }).catch(() => response.sendStatus(500))
+}
+
 
 function convertIRCMessage(ircMsg: string) {
     let regexTmiTS = /tmi-sent-ts=(\d+)/
@@ -85,10 +104,14 @@ function convertIRCMessage(ircMsg: string) {
 function checkIsDown() {
     got(`${config.recentMsgInstance}/api/v2/recent-messages/forsen?limit=1`).json<RecentMessages>().then(result => {
         if (result.error !== null) {
+            console.error("recent-messages went down")
+            fs.writeFileSync('./last-down.json', new Date().toISOString())
             lastRMDowntime = new Date()
         }
     }).catch(() => {
+        console.error("recent-messages went down")
         lastRMDowntime = new Date()
+        fs.writeFileSync('./last-down.json', new Date().toISOString())
     })
 }
 
