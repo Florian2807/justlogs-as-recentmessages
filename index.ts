@@ -28,7 +28,7 @@ server.listen(1234, () => {
 })
 
 
-app.get('/status/', (request, response) => {
+app.get('/status/', (_, response) => {
     const timeSinceLastDowntime = Date.now() - lastRMDowntime.getTime()
     const hoursSinceLastDowntime = timeSinceLastDowntime / 1000 / 60 / 60
     response.send({
