@@ -1,7 +1,7 @@
 import http from 'http'
 import got from 'got'
 import express, {Express} from 'express';
-import * as fs from "fs";
+import fs from 'fs';
 
 const app: Express = express()
 
