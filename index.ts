@@ -3,25 +3,25 @@ import got from 'got'
 import express, {Express} from 'express';
 import fs from 'fs';
 
-const app: Express = express()
-
 const config = require('./config.json')
 
 const lastRecordedRMDowntime : string = fs.readFileSync('./last-down.json', 'utf8')
 let lastRMDowntime: Date = new Date(lastRecordedRMDowntime || 0)
 let loggedChannels: string[] = []
+
 console.log(lastRMDowntime)
+
 
 checkIsDown()
 getAvailableChannels()
-
 setInterval(() => {
     checkIsDown()
     getAvailableChannels()
 }, 60000)
 
-const server = http.createServer(app)
 
+const app: Express = express()
+const server = http.createServer(app)
 server.listen(1234, () => {
     console.log('listening on port 1234')
 })
@@ -51,8 +51,10 @@ app.get('/api/v2/recent-messages/:channel/', (request, response) => {
     }
 })
 
+
 function requestRecentMSG(response: any, requestedChannel: string, requestedLimit: number) {
     const recentMessages = `${config.recentMsgInstance}/api/v2/recent-messages/${requestedChannel}?limit=${requestedLimit}`
+
     got(recentMessages, {throwHttpErrors: false}).then(result => {
         response.header('content-type', 'application/json')
         if (response.error !== null) {
@@ -67,10 +69,8 @@ function requestRecentMSG(response: any, requestedChannel: string, requestedLimi
     })
 }
 
-
 function requestJustLogs(response: any, requestedChannel: string, requestedLimit: number) {
     got(`${config.recentMsgJustLogsInstance}/${requestedChannel}`).json<RecentMessages>().then(result => {
-
         const messageLimit = Math.min(result.messages.length, requestedLimit)
         result.messages = result.messages.slice(0, messageLimit)
 
@@ -93,7 +93,6 @@ function convertIRCMessage(ircMsg: string) {
     let regexInsertRMTags = /(.+flags=;)(id=.+mod=\d;)(room-id=.+)/
 
     let tmiTS = regexTmiTS.exec(ircMsg)?.[1]
-
 
     return ircMsg.replace(regexInsertRMTags, `$1historical=1;$2rm-received-ts=${tmiTS};$3`)
 }
