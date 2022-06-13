@@ -34,8 +34,7 @@ app.get('/api/v2/recent-messages/:channel/', (request, response) => {
     const isLogged = loggedChannels.includes(requestedChannel)
     if (!isLogged || hoursSinceLastDowntime > 24) {
         const recentMessages = `${config.recentMsgInstance}/api/v2/recent-messages/${requestedChannel}?limit=${requestedLimit}`
-        got(recentMessages, {throwHttpErrors: false} ).then(result => {
-            console.log(result.rawBody)
+        got(recentMessages, {throwHttpErrors: false}).then(result => {
             response.header('content-type', 'application/json')
             response.send(result.rawBody)
         }).catch(() => {
@@ -46,19 +45,19 @@ app.get('/api/v2/recent-messages/:channel/', (request, response) => {
     } else {
         got(`${config.recentMsgJustLogsInstance}/${requestedChannel}`).json<RecentMessages>().then(result => {
 
-                const messageLimit = Math.min(result.messages.length, requestedLimit)
-                result.messages = result.messages.slice(0, messageLimit)
+            const messageLimit = Math.min(result.messages.length, requestedLimit)
+            result.messages = result.messages.slice(0, messageLimit)
 
-                const recentMessages: string[] = []
-                result.messages.forEach(message => {
-                    recentMessages.push(convertIRCMessage(message))
-                })
+            const recentMessages: string[] = []
+            result.messages.forEach(message => {
+                recentMessages.push(convertIRCMessage(message))
+            })
 
-                response.send({
-                    "error": null,
-                    "error_code": null,
-                    "messages": recentMessages
-                })
+            response.send({
+                "error": null,
+                "error_code": null,
+                "messages": recentMessages
+            })
         }).catch(() => response.sendStatus(500))
     }
 })
