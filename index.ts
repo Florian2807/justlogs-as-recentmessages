@@ -57,7 +57,7 @@ function requestRecentMSG(response: any, requestedChannel: string, requestedLimi
 
     got(recentMessages, {throwHttpErrors: false}).then(result => {
         response.header('content-type', 'application/json')
-        if (response.error !== null) {
+        if (JSON.parse(result.body).error !== null) {
             requestJustLogs(response, requestedChannel, requestedLimit)
         } else {
             response.send(result.rawBody)
