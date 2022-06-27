@@ -6,7 +6,7 @@ import fs from 'fs';
 const config = require('./config.json')
 
 const lastRecordedRMDowntime : string = fs.readFileSync('./last-down.json', 'utf8')
-let lastRMDowntime: Date = new Date(lastRecordedRMDowntime || 0)
+let lastRMDowntime: Date = new Date(Date.parse(lastRecordedRMDowntime) || 0)
 let loggedChannels: string[] = []
 
 
@@ -41,12 +41,13 @@ app.get('/api/v2/recent-messages/:channel/', (request, response) => {
     const requestedChannel = request.params.channel
     const requestedLimit = parseInt(request.query.limit as string) || 800
 
-    console.log(`requesting recent messages for ${requestedChannel}`)
 
     const isLogged = loggedChannels.includes(requestedChannel)
     if (!isLogged || hoursSinceLastDowntime > 24) {
+        console.log(`requesting recent messages for ${requestedChannel} NoLogs: ${!isLogged} wasDown: ${hoursSinceLastDowntime > 24}`)
         requestRecentMSG(response, requestedChannel, requestedLimit)
     } else {
+        console.log(`requesting JustLogs for ${requestedChannel} isLogged: ${!isLogged} wasDown: ${hoursSinceLastDowntime > 24}`)
         requestJustLogs(response, requestedChannel, requestedLimit)
     }
 })
