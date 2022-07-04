@@ -17,6 +17,14 @@ Install [Node.js](https://nodejs.org/), if you don't have it already.
 ```bash
 git clone https://github.com/Florian2807/justlogs-as-recentmessages | cd justlogs-as-recentmessages
 ```
+**Edit** the config.json:
+```bash
+vim config.json
+```
+**Rename** last-down.json: 
+```bash
+mv last-down.json.example last-down.json
+```
 **Install** the dependencies:
 ```bash
 npm install
