@@ -5,7 +5,7 @@ import fs from 'fs';
 
 const config = require('./config.json')
 
-const lastRecordedRMDowntime : string = fs.readFileSync('./last-down.json', 'utf8')
+const lastRecordedRMDowntime: string = fs.readFileSync('./last-down.json', 'utf8')
 let lastRMDowntime: Date = new Date(Date.parse(lastRecordedRMDowntime) || 0)
 let loggedChannels: string[] = []
 
@@ -35,19 +35,27 @@ app.get('/status/', (_, response) => {
 })
 
 app.get('/api/v2/recent-messages/:channel/', (request, response) => {
+
     const timeSinceLastDowntime = Date.now() - lastRMDowntime.getTime()
     const hoursSinceLastDowntime = timeSinceLastDowntime / 1000 / 60 / 60
 
     const requestedChannel = request.params.channel
     const requestedLimit = parseInt(request.query.limit as string) || 800
 
+    if (request.query.justlogs) {
+        requestJustLogs(response, requestedChannel, requestedLimit)
+    }
+    if (request.query.recentmsg) {
+        requestRecentMSG(response, requestedChannel, requestedLimit)
+    }
+
 
     const isLogged = loggedChannels.includes(requestedChannel)
     if (!isLogged || hoursSinceLastDowntime > 24) {
-        console.log(`requesting recent messages for ${requestedChannel} NoLogs: ${!isLogged} wasDown: ${hoursSinceLastDowntime > 24}`)
+        console.log(`requesting recent messages for ${requestedChannel} NoLogs: ${!isLogged} wasDown: ${hoursSinceLastDowntime < 24}`)
         requestRecentMSG(response, requestedChannel, requestedLimit)
     } else {
-        console.log(`requesting JustLogs for ${requestedChannel} isLogged: ${!isLogged} wasDown: ${hoursSinceLastDowntime > 24}`)
+        console.log(`requesting JustLogs for ${requestedChannel} isLogged: ${!isLogged} wasDown: ${hoursSinceLastDowntime < 24}`)
         requestJustLogs(response, requestedChannel, requestedLimit)
     }
 })
@@ -91,7 +99,7 @@ function requestJustLogs(response: any, requestedChannel: string, requestedLimit
 
 function convertIRCMessage(ircMsg: string) {
     let regexTmiTS = /tmi-sent-ts=(\d+)/
-    let regexInsertRMTags = /(.+flags=;)(id=.+mod=\d;)(room-id=.+)/
+    let regexInsertRMTags = /(.+flags=;)(id=.+mod=\d;)(returning-chatter=.+)/
 
     let tmiTS = regexTmiTS.exec(ircMsg)?.[1]
 
