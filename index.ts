@@ -107,15 +107,15 @@ function convertIRCMessage(ircMsg: string) {
 }
 
 function checkIsDown() {
-    got(`${config.recentMsgInstance}/api/v2/recent-messages/forsen?limit=1`).json<RecentMessages>().then(result => {
+    got(`${config.recentMsgInstance}/api/v2/recent-messages/florian_2807?limit=1`).json<RecentMessages>().then(result => {
         if (result.error !== null) {
             console.error("recent-messages went down")
             fs.writeFileSync('./last-down.json', new Date().toISOString())
             lastRMDowntime = new Date()
         }
     }).catch(() => {
-        console.error("recent-messages went down")
         lastRMDowntime = new Date()
+        console.error("recent-messages went down" + lastRMDowntime)
         fs.writeFileSync('./last-down.json', new Date().toISOString())
     })
 }
