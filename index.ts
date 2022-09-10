@@ -24,6 +24,7 @@ server.listen(config.port, () => {
     console.log('listening on port ' + config.port)
 })
 
+app.get('')
 
 app.get('/status/', (_, response) => {
     const timeSinceLastDowntime = Date.now() - lastRMDowntime.getTime()
@@ -44,8 +45,7 @@ app.get('/api/v2/recent-messages/:channel/', (request, response) => {
 
     if (request.query.justlogs) {
         requestJustLogs(response, requestedChannel, requestedLimit)
-    }
-    if (request.query.recentmsg) {
+    } else if (request.query.recentmsg) {
         requestRecentMSG(response, requestedChannel, requestedLimit)
     }
 
@@ -91,6 +91,7 @@ function requestJustLogs(response: any, requestedChannel: string, requestedLimit
         response.send({
             "error": null,
             "error_code": null,
+            "info": "JusLogs",
             "messages": recentMessages
         })
     }).catch(() => response.sendStatus(500))
@@ -99,7 +100,7 @@ function requestJustLogs(response: any, requestedChannel: string, requestedLimit
 
 function convertIRCMessage(ircMsg: string) {
     let regexTmiTS = /tmi-sent-ts=(\d+)/
-    let regexInsertRMTags = /(.+flags=;)(id=.+mod=\d;)(returning-chatter=.+)/
+    let regexInsertRMTags = /(.+flags=;)(id=.+mod=.+returning-chatter=.;)/
 
     let tmiTS = regexTmiTS.exec(ircMsg)?.[1]
 
