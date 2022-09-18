@@ -49,16 +49,12 @@ app.get('/api/v2/recent-messages/:channel/', (request, response) => {
         const hoursSinceLastDowntime = timeSinceLastDowntime / 1000 / 60 / 60
         instanceStatus[instance] = hoursSinceLastDowntime < 24 // true means instance has downtime
     }
-    console.log("instanceStatus: " + JSON.stringify(instanceStatus))
     for (let i = Object.keys(instanceStatus)?.length; i > 0; i--) {
         const instance = instanceStatus[Object.keys(instanceStatus)[i-1]]
-        console.log(instance)
         if (!instance) {
             usefulInstance = Object.keys(instanceStatus)[i-1]
-            console.log(usefulInstance)
         }
     }
-    console.log("usefulInstance: " + usefulInstance)
     const requestedChannel = request.params.channel
     const requestedLimit = parseInt(request.query.limit as string) || 800
     if (request.query.justlogs) {
