@@ -29,8 +29,6 @@ server.listen(config.port, () => {
     console.log('listening on port ' + config.port)
 })
 
-app.get('')
-
 app.get('/status/', (_, response) => {
     const timeSinceLastDowntime = Date.now() - lastRMDowntime["https://recent-messages.robotty.de"].getTime()
     const hoursSinceLastDowntime = timeSinceLastDowntime / 1000 / 60 / 60
@@ -64,12 +62,15 @@ app.get('/api/v2/recent-messages/:channel/', (request, response) => {
     }
 
     const isLogged = loggedChannels.includes(requestedChannel)
-    if (!isLogged && usefulInstance.length > 0) {
+    if (isLogged && usefulInstance.length > 0) {
         console.log(`requesting ${usefulInstance} for ${requestedChannel} NoLogs: ${!isLogged} wasDown: ${instanceStatus[usefulInstance] ?? true}`)
         requestRecentMSG(response, requestedChannel, requestedLimit, usefulInstance)
-    } else {
+    } else if (isLogged && !instanceStatus[usefulInstance]) {
         console.log(`requesting JustLogs for ${requestedChannel} isLogged: ${!isLogged} wasDown: ${instanceStatus[usefulInstance] ?? true}`)
         requestJustLogs(response, requestedChannel, requestedLimit)
+    } else if (!isLogged) {
+        console.log(`requesting ${usefulInstance ?? config.recentMsgInstance[0]} for ${requestedChannel} NoLogs: ${!isLogged} wasDown: ${instanceStatus[usefulInstance] ?? true}`)
+        requestRecentMSG(response, requestedChannel, requestedLimit, usefulInstance ?? config.recentMsgInstance[0])
     }
 })
 
