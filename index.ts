@@ -8,6 +8,14 @@ const lastRecordedRMDowntime: { [key: string]: string | null } = require('./last
 
 checkCorrectConfig();
 
+config.recentMsgInstance.forEach((instance:string) => {
+    if (lastRecordedRMDowntime[instance] === undefined) {
+        console.log(instance + " has been added to last-down.json")
+        lastRecordedRMDowntime[instance] = null
+        fs.writeFileSync('./last-down.json', JSON.stringify(lastRecordedRMDowntime, null, 4))
+    }
+})
+
 let lastRMDowntime: { [key: string]: Date } = {}
 Object.keys(lastRecordedRMDowntime).forEach(key => {
     lastRMDowntime[key] = new Date(lastRecordedRMDowntime[key] || 0)
@@ -48,9 +56,9 @@ app.get('/api/v2/recent-messages/:channel/', (request, response) => {
         instanceStatus[instance] = hoursSinceLastDowntime < 24 // true means instance has downtime
     }
     for (let i = Object.keys(instanceStatus)?.length; i > 0; i--) {
-        const instance = instanceStatus[Object.keys(instanceStatus)[i-1]]
+        const instance = instanceStatus[Object.keys(instanceStatus)[i - 1]]
         if (!instance) {
-            usefulInstance = Object.keys(instanceStatus)[i-1]
+            usefulInstance = Object.keys(instanceStatus)[i - 1]
         }
     }
     const requestedChannel = request.params.channel
