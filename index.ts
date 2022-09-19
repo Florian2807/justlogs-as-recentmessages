@@ -8,7 +8,7 @@ const lastRecordedRMDowntime: { [key: string]: string | null } = require('./last
 
 checkCorrectConfig();
 
-config.recentMsgInstance.forEach((instance:string) => {
+config.recentMsgInstance.forEach((instance: string) => {
     if (lastRecordedRMDowntime[instance] === undefined) {
         console.log(instance + " has been added to last-down.json")
         lastRecordedRMDowntime[instance] = null
@@ -38,29 +38,22 @@ server.listen(config.port, () => {
 })
 
 app.get('/status/', (_, response) => {
-    const timeSinceLastDowntime = Date.now() - lastRMDowntime["https://recent-messages.robotty.de"].getTime()
-    const hoursSinceLastDowntime = timeSinceLastDowntime / 1000 / 60 / 60
-    response.send({
-        "lastDowntime": lastRMDowntime["https://recent-messages.robotty.de"].getTime() ? lastRMDowntime : null,
-        "last24Hours": hoursSinceLastDowntime < 24,
+    const {usefulInstance, instanceStatus} = getUsefulInstance()
+    let output: object[] = []
+    Object.keys(instanceStatus).forEach(instance => {
+        output.push({
+            "instance": instance,
+            "lastDown": lastRMDowntime[instance].toISOString(),
+            "last24Hours": instanceStatus[instance]
+        })
     })
+
+    response.send({"instances": output, "usedInstance": usefulInstance.length > 0 ? usefulInstance : "JustLogs"})
 })
 
 app.get('/api/v2/recent-messages/:channel/', (request, response) => {
 
-    let instanceStatus: { [key: string]: boolean } = {}
-    let usefulInstance: string | null = ""
-    for (const instance of config.recentMsgInstance) {
-        const timeSinceLastDowntime = Date.now() - lastRMDowntime[instance]?.getTime() || 0
-        const hoursSinceLastDowntime = timeSinceLastDowntime / 1000 / 60 / 60
-        instanceStatus[instance] = hoursSinceLastDowntime < 24 // true means instance has downtime
-    }
-    for (let i = Object.keys(instanceStatus)?.length; i > 0; i--) {
-        const instance = instanceStatus[Object.keys(instanceStatus)[i - 1]]
-        if (!instance) {
-            usefulInstance = Object.keys(instanceStatus)[i - 1]
-        }
-    }
+    const {usefulInstance, instanceStatus} = getUsefulInstance()
     const requestedChannel = request.params.channel
     const requestedLimit = parseInt(request.query.limit as string) || 800
     if (request.query.justlogs) {
@@ -154,6 +147,24 @@ interface RecentMessages {
     error: string
     error_code: string
     messages: string[]
+}
+
+
+function getUsefulInstance() {
+    let instanceStatus: { [key: string]: boolean } = {}
+    let usefulInstance: string | null = ""
+    for (const instance of config.recentMsgInstance) {
+        const timeSinceLastDowntime = Date.now() - lastRMDowntime[instance]?.getTime() || 0
+        const hoursSinceLastDowntime = timeSinceLastDowntime / 1000 / 60 / 60
+        instanceStatus[instance] = hoursSinceLastDowntime < 24 // true means instance has downtime
+    }
+    for (let i = Object.keys(instanceStatus)?.length; i > 0; i--) {
+        const instance = instanceStatus[Object.keys(instanceStatus)[i - 1]]
+        if (!instance) {
+            usefulInstance = Object.keys(instanceStatus)[i - 1]
+        }
+    }
+    return {usefulInstance, instanceStatus}
 }
 
 
