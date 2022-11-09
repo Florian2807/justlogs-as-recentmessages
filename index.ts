@@ -140,7 +140,16 @@ function getAvailableRecentMSG() {
 }
 
 function getAvailableChannels() {
-    got(`${config.justlogsInstance}/channels`).json<string[]>().then(channels => loggedChannels = channels)
+    got(`${config.justlogsInstance}/channels`).json<Channels>().then(result => loggedChannels = result.channels.map(c => c.name))
+}
+
+interface Channels {
+    channels: Channel[]
+}
+
+interface Channel {
+    userID: string
+    name: string
 }
 
 interface RecentMessages {
