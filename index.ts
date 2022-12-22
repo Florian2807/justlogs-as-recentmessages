@@ -10,7 +10,8 @@ checkCorrectConfig();
 
 config.recentMsgInstance.forEach((instance: string) => {
     if (lastRecordedRMDowntime[instance] === undefined) {
-        console.log(instance + " has been added to last-down.json")
+
+        console.log(`${getDate()} ${instance} has been added to last-down.json`)
         lastRecordedRMDowntime[instance] = null
         fs.writeFileSync('./last-down.json', JSON.stringify(lastRecordedRMDowntime, null, 4))
     }
@@ -34,7 +35,7 @@ setInterval(() => {
 const app: Express = express()
 const server = http.createServer(app)
 server.listen(config.port, () => {
-    console.log('listening on port ' + config.port)
+    console.log(`${getDate()} listening on port ${config.port}`)
 })
 
 app.get('/status/', (_, response) => {
@@ -61,16 +62,15 @@ app.get('/api/v2/recent-messages/:channel/', (request, response) => {
     } else if (request.query.recentmsg) {
         requestRecentMSG(response, requestedChannel, requestedLimit, usefulInstance)
     }
-
     const isLogged = loggedChannels.includes(requestedChannel)
     if (isLogged && usefulInstance.length > 0) {
-        console.log(`requesting ${usefulInstance} for ${requestedChannel} NoLogs: ${!isLogged} wasDown: ${instanceStatus[usefulInstance] ?? true}`)
+        console.log(`${getDate()} requesting ${usefulInstance} for ${requestedChannel} NoLogs: ${!isLogged} wasDown: ${instanceStatus[usefulInstance] ?? true}`)
         requestRecentMSG(response, requestedChannel, requestedLimit, usefulInstance)
     } else if (isLogged && !instanceStatus[usefulInstance]) {
-        console.log(`requesting JustLogs for ${requestedChannel} isLogged: ${!isLogged} wasDown: ${instanceStatus[usefulInstance] ?? true}`)
+        console.log(`${getDate()} requesting JustLogs for ${requestedChannel} isLogged: ${!isLogged} wasDown: ${instanceStatus[usefulInstance] ?? true}`)
         requestJustLogs(response, requestedChannel, requestedLimit)
     } else if (!isLogged) {
-        console.log(`requesting ${usefulInstance ?? config.recentMsgInstance[0]} for ${requestedChannel} NoLogs: ${!isLogged} wasDown: ${instanceStatus[usefulInstance] ?? true}`)
+        console.log(`${getDate()} requesting ${usefulInstance ?? config.recentMsgInstance[0]} for ${requestedChannel} NoLogs: ${!isLogged} wasDown: ${instanceStatus[usefulInstance] ?? true}`)
         requestRecentMSG(response, requestedChannel, requestedLimit, usefulInstance ?? config.recentMsgInstance[0])
     }
 })
@@ -87,7 +87,7 @@ function requestRecentMSG(response: any, requestedChannel: string, requestedLimi
             response.send(result.rawBody)
         }
     }).catch(() => {
-        console.log('recent-messages request failed')
+        console.log(`${getDate()}recent-messages request failed`)
         response.sendStatus(500)
     })
 }
@@ -127,12 +127,12 @@ function getAvailableRecentMSG() {
     for (const instance of config.recentMsgInstance) {
         got(`${instance}/api/v2/recent-messages/forsen?limit=1`).json<RecentMessages>().then(result => {
             if (result.error !== null) {
-                console.error(`${instance} went down`)
+                console.error(`${getDate()} ${instance} went down`)
                 lastDown[instance] = new Date().toISOString()
                 fs.writeFileSync('./last-down.json', JSON.stringify(lastDown, null, 4))
             }
         }).catch(() => {
-            console.error(`${instance} went down`)
+            console.error(`${getDate()} ${instance} went down`)
             lastDown[instance] = new Date().toISOString()
             fs.writeFileSync('./last-down.json', JSON.stringify(lastDown, null, 4))
         })
@@ -179,23 +179,30 @@ function getUsefulInstance() {
 
 function checkCorrectConfig() {
     if (!config.port || typeof config.port !== 'number') {
-        console.error('no port specified')
+        console.error(`${getDate()} no port specified`)
         process.exit(1)
     }
     if (!config.recentMsgInstance || !Array.isArray(config.recentMsgInstance)) {
-        console.error('no recent-messages instance specified')
+        console.error(`${getDate()} no recent-messages instance specified`)
         process.exit(1)
     }
     if (!config.recentMsgJustLogsInstance || typeof config.recentMsgJustLogsInstance !== 'string') {
-        console.error('no recent-messages instance specified')
+        console.error(`${getDate()} no recent-messages instance specified`)
         process.exit(1)
     }
     if (!config.justlogsInstance || typeof config.justlogsInstance !== 'string') {
-        console.error('no justlogs instance specified')
+        console.error(`${getDate()} no justlogs instance specified`)
         process.exit(1)
     }
     if (!lastRecordedRMDowntime || typeof lastRecordedRMDowntime !== 'object') {
-        console.error('last-down.json not correct')
+        console.error(`${getDate()} last-down.json not correct`)
         process.exit(1)
     }
+}
+
+function getDate() {
+     return (new Intl.DateTimeFormat("de-de", {
+        dateStyle: "medium",
+        timeStyle: "medium",
+    }).format(new Date()))
 }
