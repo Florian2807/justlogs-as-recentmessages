@@ -62,14 +62,12 @@ app.get('/api/v2/recent-messages/:channel/', (request, response) => {
     } else if (request.query.recentmsg) {
         requestRecentMSG(response, requestedChannel, requestedLimit, usefulInstance)
     }
+
     const isLogged = loggedChannels.includes(requestedChannel)
-    if (isLogged && usefulInstance.length > 0) {
-        console.log(`${getDate()} requesting ${usefulInstance} for ${requestedChannel} NoLogs: ${!isLogged} wasDown: ${instanceStatus[usefulInstance] ?? true}`)
-        requestRecentMSG(response, requestedChannel, requestedLimit, usefulInstance)
-    } else if (isLogged && !instanceStatus[usefulInstance]) {
+    if (isLogged && !instanceStatus[usefulInstance]) {
         console.log(`${getDate()} requesting JustLogs for ${requestedChannel} isLogged: ${!isLogged} wasDown: ${instanceStatus[usefulInstance] ?? true}`)
         requestJustLogs(response, requestedChannel, requestedLimit)
-    } else if (!isLogged) {
+    } else {
         console.log(`${getDate()} requesting ${usefulInstance ?? config.recentMsgInstance[0]} for ${requestedChannel} NoLogs: ${!isLogged} wasDown: ${instanceStatus[usefulInstance] ?? true}`)
         requestRecentMSG(response, requestedChannel, requestedLimit, usefulInstance ?? config.recentMsgInstance[0])
     }
@@ -81,11 +79,7 @@ function requestRecentMSG(response: any, requestedChannel: string, requestedLimi
 
     got(recentMessages, {throwHttpErrors: false}).then(result => {
         response.header('content-type', 'application/json')
-        if (JSON.parse(result.body).error !== null) {
-            requestJustLogs(response, requestedChannel, requestedLimit)
-        } else {
-            response.send(result.rawBody)
-        }
+        response.send(result.rawBody)
     }).catch(() => {
         console.log(`${getDate()}recent-messages request failed`)
         response.sendStatus(500)
@@ -104,12 +98,14 @@ function requestJustLogs(response: any, requestedChannel: string, requestedLimit
         })
 
         response.send({
-            "error": null,
-            "error_code": null,
-            "info": "JusLogs",
+            "error": result.error,
+            "error_code": result.error_code,
+            "info": "JustLogs",
             "messages": recentMessages
         })
-    }).catch(() => response.sendStatus(500))
+    }).catch(() => {
+        requestRecentMSG(response, requestedChannel, requestedLimit, config.recentMsgInstance[0])
+    })
 }
 
 
