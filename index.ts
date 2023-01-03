@@ -61,6 +61,8 @@ app.get('/api/v2/recent-messages/:channel/', (request, response) => {
         return requestJustLogs(response, requestedChannel, requestedLimit)
     } else if (request.query.recentmsg) {
         return requestRecentMSG(response, requestedChannel, requestedLimit, usefulInstance)
+    } else if (request.query.gql) {
+        return requestGQL(response, requestedChannel, requestedLimit)
     }
 
     const isLogged = loggedChannels.includes(requestedChannel)
@@ -96,12 +98,32 @@ function requestJustLogs(response: any, requestedChannel: string, requestedLimit
         result.messages.forEach(message => {
             recentMessages.push(convertIRCMessage(message))
         })
+        if (recentMessages.length === 0) {
+            return requestGQL(response, requestedChannel, requestedLimit)
+        }
 
         response.send({
             "error": result.error,
             "error_code": result.error_code,
             "info": "JustLogs",
             "messages": recentMessages
+        })
+    }).catch(() => {
+        requestGQL(response, requestedChannel, requestedLimit)
+    })
+}
+
+
+function requestGQL(response: any, requestedChannel: string, requestedLimit: number) {
+    const url = `${config.gqlInstance}/${requestedChannel}`
+
+    got(url).then(result => {
+        response.header('content-type', 'application/json')
+        response.send({
+            "error": null,
+            "error_code": null,
+            "info": "GQL",
+            "messages": JSON.parse(result.body).messages
         })
     }).catch(() => {
         requestRecentMSG(response, requestedChannel, requestedLimit, config.recentMsgInstance[0])
