@@ -58,14 +58,14 @@ app.get('/api/v2/recent-messages/:channel/', (request, response) => {
     const requestedChannel = request.params.channel
     const requestedLimit = parseInt(request.query.limit as string) || 800
     if (request.query.justlogs) {
-        requestJustLogs(response, requestedChannel, requestedLimit)
+        return requestJustLogs(response, requestedChannel, requestedLimit)
     } else if (request.query.recentmsg) {
-        requestRecentMSG(response, requestedChannel, requestedLimit, usefulInstance)
+        return requestRecentMSG(response, requestedChannel, requestedLimit, usefulInstance)
     }
 
     const isLogged = loggedChannels.includes(requestedChannel)
-    if (isLogged && !instanceStatus[usefulInstance]) {
-        console.log(`${getDate()} requesting JustLogs for ${requestedChannel} isLogged: ${!isLogged} wasDown: ${instanceStatus[usefulInstance] ?? true}`)
+    if (isLogged && (instanceStatus[usefulInstance] || !usefulInstance)) {
+        console.log(`${getDate()} requesting JustLogs for ${requestedChannel} isLogged: ${isLogged} wasDown: ${instanceStatus[usefulInstance] ?? true}`)
         requestJustLogs(response, requestedChannel, requestedLimit)
     } else {
         console.log(`${getDate()} requesting ${usefulInstance ?? config.recentMsgInstance[0]} for ${requestedChannel} NoLogs: ${!isLogged} wasDown: ${instanceStatus[usefulInstance] ?? true}`)
@@ -81,7 +81,7 @@ function requestRecentMSG(response: any, requestedChannel: string, requestedLimi
         response.header('content-type', 'application/json')
         response.send(result.rawBody)
     }).catch(() => {
-        console.log(`${getDate()}recent-messages request failed`)
+        console.log(`${getDate()} recent-messages request failed`)
         response.sendStatus(500)
     })
 }
@@ -197,8 +197,8 @@ function checkCorrectConfig() {
 }
 
 function getDate() {
-     return (new Intl.DateTimeFormat("de-de", {
+     return `${(new Intl.DateTimeFormat("de-de", {
         dateStyle: "medium",
         timeStyle: "medium",
-    }).format(new Date()))
+    }).format(new Date()))}:`
 }
