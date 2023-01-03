@@ -5,5 +5,6 @@
     ],
     "recentMsgJustLogsInstance": "https://rmjl.florian2807.me",
     "justlogsInstance": "https://logs.florian2807.me",
+    "gqlInstance": "https://api.chatsen.app/v1/history",
     "port": 1234
 }
