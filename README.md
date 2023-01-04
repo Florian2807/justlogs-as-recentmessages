@@ -54,7 +54,7 @@ Use the provided config.json file to set configuration options:
 {
     "recentMsgInstance": "https://recent-messages.robotty.de",
     "recentMsgJustLogsInstance": "https://rmjl.florian2807.me",
-    "justlogsInstance": "https://logs.florian2807.me",
+    "justlogsInstance": "https://justlog.florian2807.me",
     "port": 1234
 }
 ```
