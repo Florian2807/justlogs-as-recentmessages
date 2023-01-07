@@ -2,6 +2,6 @@
 package-lock.json
 /.idea/
 last-down.json
-
+config.json
 /**/*.js
 /**/*.js.map
