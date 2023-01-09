@@ -125,11 +125,13 @@ function getAvailableRecentMSG() {
             if (result.error !== null) {
                 console.error(`${getDate()} ${instance} went down`)
                 lastDown[instance] = new Date().toISOString()
+                lastRMDowntime[instance] = new Date()
                 fs.writeFileSync('./last-down.json', JSON.stringify(lastDown, null, 4))
             }
         }).catch(() => {
             console.error(`${getDate()} ${instance} went down`)
             lastDown[instance] = new Date().toISOString()
+            lastRMDowntime[instance] = new Date()
             fs.writeFileSync('./last-down.json', JSON.stringify(lastDown, null, 4))
         })
     }
