@@ -7,6 +7,10 @@ const config = require('./config.json')
 const lastRecordedRMDowntime: { [key: string]: string | null } = require('./last-down.json')
 
 checkCorrectConfig();
+let lastPingDown: lastPingDown = {}
+config.recentMsgInstance.forEach((instance: string) => {
+    lastPingDown[instance] = false
+})
 
 config.recentMsgInstance.forEach((instance: string) => {
     if (lastRecordedRMDowntime[instance] === undefined) {
@@ -77,7 +81,7 @@ app.get('/api/v2/recent-messages/:channel/', (request, response) => {
 function requestRecentMSG(response: any, requestedChannel: string, requestedLimit: number, instance: string) {
     const recentMessages = `${instance}/api/v2/recent-messages/${requestedChannel}?limit=${requestedLimit}`
 
-    got(recentMessages, {throwHttpErrors: false}).then(result => {
+    got(recentMessages).then(result => {
         response.header('content-type', 'application/json')
         response.send(result.rawBody)
     }).catch(() => {
@@ -126,14 +130,23 @@ function getAvailableRecentMSG() {
     let lastDown = require('./last-down.json')
     for (const instance of config.recentMsgInstance) {
         got(`${instance}/api/v2/recent-messages/forsen?limit=1`).json<RecentMessages>().then(result => {
-            if (result.error !== null) {
-                console.error(`${getDate()} ${instance} went down`)
-                lastDown[instance] = new Date().toISOString()
-                lastRMDowntime[instance] = new Date()
-                fs.writeFileSync('./last-down.json', JSON.stringify(lastDown, null, 4))
+                if (result.error !== null) {
+                    if (!lastPingDown[instance]) {
+                        console.warn(`${getDate()} ${instance} went down`)
+                        lastPingDown[instance] = true
+                    }
+                    lastDown[instance] = new Date().toISOString()
+                    lastRMDowntime[instance] = new Date()
+                    fs.writeFileSync('./last-down.json', JSON.stringify(lastDown, null, 4))
+                } else {
+                    lastPingDown[instance] = false // not down
+                }
             }
-        }).catch(() => {
-            console.error(`${getDate()} ${instance} went down`)
+        ).catch(() => {
+            if (!lastPingDown[instance]) {
+                console.warn(`${getDate()} ${instance} went down`)
+                lastPingDown[instance] = true
+            }
             lastDown[instance] = new Date().toISOString()
             lastRMDowntime[instance] = new Date()
             fs.writeFileSync('./last-down.json', JSON.stringify(lastDown, null, 4))
@@ -158,6 +171,10 @@ interface RecentMessages {
     error: string
     error_code: string
     messages: string[]
+}
+
+interface lastPingDown {
+    [key: string]: Boolean
 }
 
 
