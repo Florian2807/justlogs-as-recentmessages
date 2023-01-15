@@ -132,19 +132,22 @@ function getAvailableRecentMSG() {
         got(`${instance}/api/v2/recent-messages/forsen?limit=1`).json<RecentMessages>().then(result => {
                 if (result.error !== null) {
                     if (!lastPingDown[instance]) {
-                        console.warn(`${getDate()} ${instance} went down`)
+                        console.error(`${getDate()} ${instance} went down`)
                         lastPingDown[instance] = true
                     }
                     lastDown[instance] = new Date().toISOString()
                     lastRMDowntime[instance] = new Date()
                     fs.writeFileSync('./last-down.json', JSON.stringify(lastDown, null, 4))
                 } else {
+                    if (lastPingDown[instance]) {
+                        console.error(`${getDate()} ${instance} is back up`)
+                    }
                     lastPingDown[instance] = false // not down
                 }
             }
         ).catch(() => {
             if (!lastPingDown[instance]) {
-                console.warn(`${getDate()} ${instance} went down`)
+                console.error(`${getDate()} ${instance} went down`)
                 lastPingDown[instance] = true
             }
             lastDown[instance] = new Date().toISOString()
