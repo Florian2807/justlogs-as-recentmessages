@@ -68,12 +68,12 @@ app.get('/api/v2/recent-messages/:channel/', (request, response) => {
     }
 
     const isLogged = loggedChannels.includes(requestedChannel)
-    if (isLogged && (instanceStatus[usefulInstance] || !usefulInstance)) {
+    if (isLogged && (instanceStatus[usefulInstance] || !usefulInstance.length)) {
         console.log(`${getDate()} requesting JustLogs for ${requestedChannel} isLogged: ${isLogged} wasDown: ${instanceStatus[usefulInstance] ?? true}`)
         requestJustLogs(response, requestedChannel, requestedLimit)
     } else {
-        console.log(`${getDate()} requesting ${usefulInstance ?? config.recentMsgInstance[0]} for ${requestedChannel} NoLogs: ${!isLogged} wasDown: ${instanceStatus[usefulInstance] ?? true}`)
-        requestRecentMSG(response, requestedChannel, requestedLimit, usefulInstance ?? config.recentMsgInstance[0])
+        console.log(`${getDate()} requesting ${usefulInstance.length ? usefulInstance : config.recentMsgInstance[0]} for ${requestedChannel} NoLogs: ${!isLogged} wasDown: ${instanceStatus[usefulInstance] ?? true}`)
+        requestRecentMSG(response, requestedChannel, requestedLimit, usefulInstance.length ? usefulInstance : config.recentMsgInstance[0])
     }
 })
 
@@ -119,10 +119,9 @@ function requestJustLogs(response: any, requestedChannel: string, requestedLimit
 
 function convertIRCMessage(ircMsg: string) {
     let regexTmiTS = /tmi-sent-ts=(\d+)/
-    let regexInsertRMTags = /(.+flags=;)(id=.+mod=.+returning-chatter=.;)/
+    let regexInsertRMTags = /(.+flags=.+)(id=.+mod=.+returning-chatter=.;)/
 
     let tmiTS = regexTmiTS.exec(ircMsg)?.[1]
-
     return ircMsg.replace(regexInsertRMTags, `$1historical=1;$2rm-received-ts=${tmiTS};$3`)
 }
 
