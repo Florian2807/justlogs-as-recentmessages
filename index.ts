@@ -98,7 +98,7 @@ function requestRecentMSG(response: any, requestedChannel: string, requestedLimi
 function requestJustLogs(response: any, requestedChannel: string, requestedLimit: number) {
     got(`${config.recentMsgJustLogsInstance}/${requestedChannel}`).json<RecentMessages>().then(result => {
         const messageLimit = Math.min(result.messages.length, requestedLimit)
-        result.messages = result.messages.slice(0, messageLimit)
+        result.messages = result.messages.slice(-messageLimit)
 
         const recentMessages: string[] = []
         result.messages.forEach(message => {
