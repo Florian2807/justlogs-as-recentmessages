@@ -161,7 +161,12 @@ function getAvailableChannels() {
         headers: {
             "user-agent": "justlogs-as-recentmessages/Florian_2807"
         }
-    }).json<Channels>().then(result => loggedChannels = result.channels.map(c => c.name))
+    })
+        .json<Channels>()
+        .then(result => loggedChannels = result.channels.map(c => c.name))
+        .catch(() => {
+            console.log(`[${getDate()}] ${config.justlogsInstance}, justlogs channels request failed`)
+        })
 }
 
 interface Channels {
