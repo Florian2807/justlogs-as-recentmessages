@@ -2,9 +2,11 @@ import http from 'http'
 import got from 'got'
 import express, {Express} from 'express';
 import fs from 'fs';
+import schedule from 'node-schedule';
 
 const config = require('./config.json')
 const lastRecordedRMDowntime: { [key: string]: string | null } = require('./last-down.json')
+let requestedChannels: string[] = []
 
 checkCorrectConfig();
 let lastPingDown: lastPingDown = {}
@@ -61,6 +63,9 @@ app.get('/api/v2/recent-messages/:channel/', (request, response) => {
     const {usefulInstance, instanceStatus} = getUsefulInstance()
     const requestedChannel = request.params.channel
     const requestedLimit = parseInt(request.query.limit as string) || 800
+
+    requestedChannels.push(requestedChannel)
+
     if (request.query.justlogs) {
         return requestJustLogs(response, requestedChannel, requestedLimit)
     } else if (request.query.recentmsg) {
@@ -236,3 +241,18 @@ function getDate() {
         timeStyle: "medium",
     }).format(new Date()))}:`
 }
+
+// every sunday 3:00
+schedule.scheduleJob('0 1 * * 0', () => {
+    requestedChannels = []
+})
+
+// schedule job every 24h at 0:00
+schedule.scheduleJob('0 0 * * *', () => {
+    console.log(`[${getDate()}] ping instances with channels`)
+    for (const channel of requestedChannels) {
+        config.recentMsgInstance.forEach((instance: string) => {
+            got(`${instance}/api/v2/recent-messages/${channel}?limit=1`, {throwHttpErrors: false})
+        })
+    }
+})
