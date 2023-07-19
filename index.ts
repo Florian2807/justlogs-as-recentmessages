@@ -126,7 +126,7 @@ function convertIRCMessage(ircMsg: string) {
     let regexTmiTS = /tmi-sent-ts=(\d+)/
 
     let tmiTS = regexTmiTS.exec(ircMsg)?.[1]
-    return ircMsg.replace(/@/g, `@historical=1;rm-received-ts=${tmiTS};`)
+    return ircMsg.replace(/@/, `@historical=1;rm-received-ts=${tmiTS};`)
 }
 
 function getAvailableRecentMSG() {
