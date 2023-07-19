@@ -124,10 +124,9 @@ function requestJustLogs(response: any, requestedChannel: string, requestedLimit
 
 function convertIRCMessage(ircMsg: string) {
     let regexTmiTS = /tmi-sent-ts=(\d+)/
-    let regexInsertRMTags = /(.+flags=.+)(id=.+mod=.+returning-chatter=.;)/
 
     let tmiTS = regexTmiTS.exec(ircMsg)?.[1]
-    return ircMsg.replace(regexInsertRMTags, `$1historical=1;$2rm-received-ts=${tmiTS};$3`)
+    return ircMsg.replace(/@/g, `@historical=1;rm-received-ts=${tmiTS};`)
 }
 
 function getAvailableRecentMSG() {
