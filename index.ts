@@ -91,6 +91,7 @@ function requestRecentMSG(response: any, requestedChannel: string, requestedLimi
         response.send(result.rawBody)
     }).catch(() => {
         console.log(`${getDate()} recent-messages request failed`)
+        lastRMDowntime[instance] = new Date()
         response.send({
             "messages": [],
             "error": "The bot is currently not joined to this channel (in progress or failed previously)",
