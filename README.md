@@ -5,9 +5,18 @@ A small NodeJS utility to fetch recent messages for Chatterino or other Twitch c
 The special thing about this utility is that if [recent-messages](https://recent-messages.robotty.de/) is down or have gaps  
 it automatically uses JustLogs instances to fetch the recent messages.
 
-Live Instance: [recent-messages](https://recent-messages.florian2807.me/api/v2/recent-messages/<channelName>)
+--- 
+
+### Chatterino Configuration
+How to set up Chatterino for using this recentMSG instance: [Tutorial](https://rentry.co/hukb8)
 
 This live instance is using my own instance of [JustLogs](https://github.com/Florian2807/JustlogRedirector)
+
+
+### Live Instance
+my own instance is running on this domain: [recent-messages](https://recent-messages.florian2807.me/api/v2/recent-messages/<channelName>)
+
+--- 
 
 ## Installation
 
@@ -45,7 +54,7 @@ npm install -g pm2
 ```bash
 pm2 start index.js
 ```
-
+--- 
 ## Configuration
 
 Use the provided config.json file to set configuration options:
